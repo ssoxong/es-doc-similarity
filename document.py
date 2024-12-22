@@ -120,7 +120,7 @@ def getConsineSimilarity(vec1, vec2):
 es = Elasticsearch(
     "http://localhost:9200"
 )
-index_name = "document_sim_v2" # 인덱스 이름 변경
+index_name = "document_sim_v2"
 
 # Elasticsearch에서 문서 가져오기
 # documents = get_documents_from_elasticsearch(es, index_name)
@@ -129,9 +129,9 @@ index_name = "document_sim_v2" # 인덱스 이름 변경
 # print(getTopWordListWithPecab(dd['hits']['hits'][4]['_source']['content']))
 
 # print(makeVector("강아지"))
-print("강아지 고양이: ", getConsineSimilarity(makeVector("강아지"), makeVector("고양이")))
-print("강아지 강아지: ", getConsineSimilarity(makeVector("강아지"), makeVector("강아지")))
-print("강아지 짜장면: ", getConsineSimilarity(makeVector("강아지"), makeVector("짜장면")))
+# print("강아지 고양이: ", getConsineSimilarity(makeVector("강아지"), makeVector("고양이")))
+# print("강아지 강아지: ", getConsineSimilarity(makeVector("강아지"), makeVector("강아지")))
+# print("강아지 짜장면: ", getConsineSimilarity(makeVector("강아지"), makeVector("짜장면")))
 
 # result = es.search(index=index_name, body={
 #     "query": {"match": {"title": "인공지능 기반 음운규칙 유형별 받아쓰기 학습 웹 서비스"}}})
@@ -186,7 +186,7 @@ text = "불확실성을 이용한 기술"
 # document = es.search(index=index_name, body={
 #     "query": {"match": {"title": text}}})
 
-res = searchDocSimilarity(makeVector(document["hits"]["hits"][0]["_source"]["content"]))
+res = searchDocSimilarity(makeVector(text))
 print("test: ", text)
 for r in res['hits']['hits']:
     print(r['_score'])
