@@ -3,24 +3,6 @@ import math
 from elasticsearch import Elasticsearch
 import numpy as np
 
-def get_documents_from_elasticsearch(es, index_name):
-    """Elasticsearch에서 모든 문서를 가져오는 함수"""
-    try:
-        # 모든 문서를 가져오기 위한 scroll API 사용 (대량 문서 처리 효율적)
-        docs = []
-        scroll_response = es.search(index=index_name, scroll='1m', size=10000, body={"query": {"match_all": {}}}) # match_all 쿼리로 모든 문서 가져오기
-        scroll_id = scroll_response['_scroll_id']
-        docs.extend([hit['_source']['content'] for hit in scroll_response['hits']['hits']])
-
-        while len(scroll_response['hits']['hits']) > 0:
-            scroll_response = es.scroll(scroll_id=scroll_id, scroll='1m')
-            docs.extend([hit['_source']['content'] for hit in scroll_response['hits']['hits']])
-
-        es.clear_scroll(scroll_id=scroll_id) # 스크롤 컨텍스트 해제
-        return docs
-    except Exception as e:
-        print(f"Elasticsearch에서 문서 가져오기 오류: {e}")
-        return None
 def getDFListWithPecab(words):
     if not words:
         return {}
@@ -122,28 +104,22 @@ es = Elasticsearch(
 )
 index_name = "document_sim_v2"
 
-# Elasticsearch에서 문서 가져오기
-# documents = get_documents_from_elasticsearch(es, index_name)
-# print(documents)
-# print('-'*50)
-# print(getTopWordListWithPecab(dd['hits']['hits'][4]['_source']['content']))
-
-# print(makeVector("강아지"))
+"""단어 벡터 유사도 측정"""
 # print("강아지 고양이: ", getConsineSimilarity(makeVector("강아지"), makeVector("고양이")))
 # print("강아지 강아지: ", getConsineSimilarity(makeVector("강아지"), makeVector("강아지")))
 # print("강아지 짜장면: ", getConsineSimilarity(makeVector("강아지"), makeVector("짜장면")))
 
+"""문서와 단어 벡터 유사도 측정"""
 # result = es.search(index=index_name, body={
 #     "query": {"match": {"title": "인공지능 기반 음운규칙 유형별 받아쓰기 학습 웹 서비스"}}})
 # resultVector = makeVector(result["hits"]["hits"][0]["_source"]["content"])
-
 
 # print(getTopWordListWithPecab(result["hits"]["hits"][0]["_source"]["content"]))
 # print("학습: ", getConsineSimilarity(resultVector, makeVector("학습")))
 # print("음식: ", getConsineSimilarity(resultVector, makeVector("음식")))
 
 
-# 모든 도큐먼트에 대한 벡터 생성
+"""모든 도큐먼트에 대한 벡터 생성"""
 # documents = es.search(index=index_name, body={"query": {"match_all": {}}})["hits"]["hits"]
 # for doc in documents:
 #     doc_id = doc["_id"]
@@ -156,6 +132,7 @@ index_name = "document_sim_v2"
 #     # formatted_string += "]"
 #     print(es.update(index=index_name, id=doc_id, body={"doc": {"doc_vector": resultVector.tolist()}}))
 
+"""문서 유사도 측정 (query vector)"""
 # res = es.search(index=index_name, body={
 #     "_source": ["title"],
 #     "query": {
@@ -169,6 +146,7 @@ index_name = "document_sim_v2"
 #     print(r['_score'])
 #     print(r['_source']['title'])
 
+"""유사도 측정 (기존 vs 입력 벡터)"""
 def searchDocSimilarity(wvec):
     result = es.search(index=index_name, body={
         "_source": ["title"],
@@ -181,13 +159,18 @@ def searchDocSimilarity(wvec):
     })
     return result
 
+"""단어, 문장 유사도 측정"""
 text = "불확실성을 이용한 기술"
-
-# document = es.search(index=index_name, body={
-#     "query": {"match": {"title": text}}})
-
 res = searchDocSimilarity(makeVector(text))
 print("test: ", text)
+
+
+"""문서 유사도 측정"""
+# document = es.search(index=index_name, body={
+#     "query": {"match": {"title": text}}})
+# res = searchDocSimilarity(makeVector(document["hits"]["hits"][0]["_source"]["content"]))
+# print("test: ", document["hits"]["hits"][0]["_source"]["title"])
+
 for r in res['hits']['hits']:
     print(r['_score'])
     print(r['_source']['title'])
